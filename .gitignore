@@ -1,0 +1,26 @@
+# Niklaus — what is NEVER published (personal data, models, environments, third-party clones).
+
+# Datos de Marco y de los análisis: videos, reportes (contenido de terceros), transcripciones,
+# manifiestos, estado del MCP y la bitácora (respuestas de Claude).
+/data/
+
+# Entornos, modelos y binarios descargados (se reconstruyen con la documentación).
+/venv/
+/models/
+/tools/deno/
+__pycache__/
+*.pyc
+
+# Repos de terceros: se clonan en el commit auditado, no se copian aquí.
+/skills/claude-video/
+/skills/_auditoria/
+
+# Personal / de trabajo del día a día (no es del proyecto público).
+/PENDIENTES.md
+/INVENTARIO.md
+.claude/settings.local.json
+
+# Respaldos y temporales.
+*.bak
+*.tmp
+.DS_Store
