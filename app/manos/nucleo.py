@@ -78,7 +78,8 @@ def _controles():
     """Protected bases, computed on every call (DATA can change in tests)."""
     return [NIKLAUS / p for p in (".claude", ".git", "tools", "app", "scripts", "skills", "venv", "models", "local",
                                   "herramientas.toml", "skills.toml", "INVENTARIO.md", "PENDIENTES.md")] + \
-           [NIKLAUS / "data" / "manos", NIKLAUS / "data" / "bitacora", NIKLAUS / "data" / "voz", DATA,
+           [NIKLAUS / "data" / "manos", NIKLAUS / "data" / "bitacora", NIKLAUS / "data" / "voz",
+            NIKLAUS / "data" / "memoria", DATA,
             HOME / "Apps" / "darkroom"] + SISTEMA
 
 

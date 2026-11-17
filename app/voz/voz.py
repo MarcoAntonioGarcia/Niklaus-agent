@@ -69,6 +69,9 @@ VENV_APP = NIKLAUS / "venv" / "app" / "bin" / "python"
 MANOS_SERVIDOR = NIKLAUS / "app" / "manos" / "servidor.py"
 PROMPT_MANOS = Path(__file__).with_name("prompt-manos.md")
 AGENDA_SERVIDOR = NIKLAUS / "app" / "agenda" / "servidor.py"
+MEMORIA_SERVIDOR = NIKLAUS / "app" / "memoria" / "servidor.py"
+sys.path.insert(0, str(NIKLAUS / "app" / "memoria"))
+import memoria  # noqa: E402  (standard library only: the notes the assistant keeps about its owner)
 # Calendar and reminders: reading, creating (never invites anyone) and moving (refuses events with attendees) run
 # without asking. The two delete tools are deliberately NOT here: the owner confirms each one on a card.
 AGENDA_SIN_PREGUNTAR = ("calendarios", "eventos", "crear_evento", "mover_evento", "recordatorios",
@@ -482,8 +485,12 @@ class Cerebro:
                     "--include-partial-messages", "--tools", TOOLS, "--strict-mcp-config", "--max-turns", MAX_TURNOS,
                     "--append-system-prompt", PROMPT_VOZ.read_text(encoding="utf-8"), "--model", self.modelo]
         config = {"mcpServers": {"manos": {"command": str(VENV_APP), "args": ["-I", "-B", str(MANOS_SERVIDOR)]},
-                                 "agenda": {"command": str(VENV_APP), "args": ["-I", "-B", str(AGENDA_SERVIDOR)]}}}
-        permitidas = ",".join(["mcp__manos__*"] + [f"mcp__agenda__{h}" for h in AGENDA_SIN_PREGUNTAR])
+                                 "agenda": {"command": str(VENV_APP), "args": ["-I", "-B", str(AGENDA_SERVIDOR)]},
+                                 "memoria": {"command": str(VENV_APP), "args": ["-I", "-B", str(MEMORIA_SERVIDOR)]}}}
+        # memory: listing and forgetting run alone; WRITING a note is confirmed by the owner, because a note goes
+        # into the system prompt of every later session (a poisoned note would persist).
+        permitidas = ",".join(["mcp__manos__*", "mcp__memoria__notas", "mcp__memoria__olvidar"]
+                              + [f"mcp__agenda__{h}" for h in AGENDA_SIN_PREGUNTAR])
         return [self.claude, "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
                 "--include-partial-messages", "--tools", TOOLS_MANOS, "--strict-mcp-config",
                 "--mcp-config", json.dumps(config), "--allowedTools", permitidas,
@@ -1111,7 +1118,7 @@ def prompt_manos():
             texto += "\n" + propio.read_text(encoding="utf-8")
         except OSError as exc:
             print(f"local/prompt.md no se leyó ({exc}); sigo sin él", file=sys.stderr)
-    return texto
+    return texto + memoria.para_prompt()            # last: the notes can never sit above a rule
 
 
 def _clasificar_segmento(seg):
@@ -1200,9 +1207,6 @@ def entorno_claude():
     return {k: v for k, v in os.environ.items() if not malo.search(k)} | {"NIKLAUS_TERMINAL": "voz"}
 
 
-_OCULTOS = ((0x00, 0x08), (0x09, 0x1f), (0x7f, 0x9f), (0xad, 0xad), (0x200b, 0x200f), (0x2028, 0x202e), (0x2060, 0x2069), (0xfeff, 0xfeff))
-
-
 def describir_permiso(herramienta, entrada, corto=False):
     """What the owner is asked to approve, in plain words (the exact command is always shown on screen)."""
     if herramienta == "Bash":
@@ -1224,15 +1228,16 @@ def describir_permiso(herramienta, entrada, corto=False):
         return f"abrir la página {dominio}" if dominio else "abrir una página web"
     if herramienta == "WebSearch":
         return "buscar en internet" if corto else f"buscar: {entrada.get('query', '')}"
+    def limpio(clave, tope):                     # what the owner reads on the card: no invisible characters
+        s = memoria.limpiar(entrada.get(clave, ""))
+        return s if len(s) <= tope else s[:tope] + "…"
+    if herramienta == "mcp__memoria__recordar":
+        return "anotar algo en mi memoria; míralo en la pantalla" if corto else f"anotar en la memoria: «{limpio('texto', 320)}»"
     if herramienta in ("mcp__agenda__borrar_evento", "mcp__agenda__borrar_recordatorio"):
         que = "el evento" if herramienta.endswith("evento") else "el recordatorio"
-        def limpio(clave, tope):                 # no control, bidi or zero-width characters on the card
-            s = "".join(" " if any(a <= ord(c) <= b for a, b in _OCULTOS) else c for c in str(entrada.get(clave, "")))
-            s = re.sub(r"\s+", " ", s).strip()
-            return s if len(s) <= tope else s[:tope] + "…"
         titulo = limpio("titulo", 80) + (f" ({limpio('inicio', 16)})" if entrada.get("inicio") else "")      # the server only deletes on an exact title
         return f"borrar {que} del calendario; míralo en la pantalla" if corto else f"borrar {que}: «{titulo}»"
-    return f"usar {herramienta}" if corto else f"usar {herramienta}: {json.dumps(entrada, ensure_ascii=False)[:300]}"
+    return f"usar {herramienta}" if corto else f"usar {herramienta}: {json.dumps(entrada, ensure_ascii=True)[:300]}"
 
 
 _NO_VOZ = re.compile(r"\b(no|nel|nunca|canc[eé]l\w*|det[eé]n\w*|para|espera|alto)\b")

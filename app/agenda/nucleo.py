@@ -11,14 +11,23 @@ launched this process, normally Terminal). Rules enforced here, not by the model
 import datetime as dt
 import re
 import threading
+import unicodedata
 
 import EventKit as EK
 import Foundation as F
 
 MAX_DIAS, MAX_EVENTOS, MAX_TEXTO = 366, 200, 300
-# control, soft-hyphen, zero-width and bidi characters (written as code points: no invisible text in this file)
-_OCULTOS = ((0x00, 0x08), (0x0b, 0x1f), (0x7f, 0x9f), (0xad, 0xad), (0x200b, 0x200f), (0x2028, 0x202e), (0x2060, 0x2069), (0xfeff, 0xfeff))
-_CONTROL = re.compile("[" + "".join(f"{re.escape(chr(a))}-{re.escape(chr(b))}" for a, b in _OCULTOS) + "]")
+# Characters a person cannot see but a model reads: controls, format/bidi/tag characters, private use, unassigned,
+# line/paragraph separators, variation selectors and the blank "filler" letters. Written as code points on purpose.
+_CATEGORIAS = {"Cc", "Cf", "Co", "Cs", "Cn", "Zl", "Zp"}
+_RELLENOS = ((0x034f, 0x034f), (0x115f, 0x1160), (0x3164, 0x3164), (0xffa0, 0xffa0), (0xfe00, 0xfe0f),
+             (0xe0100, 0xe01ef))
+
+
+def _oculto(c):
+    return unicodedata.category(c) in _CATEGORIAS or any(a <= ord(c) <= b for a, b in _RELLENOS)
+
+
 _almacen = None
 _candado = threading.Lock()
 
@@ -28,7 +37,7 @@ class AgendaError(Exception):
 
 
 def _texto(valor, tope=MAX_TEXTO):
-    s = _CONTROL.sub(" ", str(valor or "")).strip()
+    s = "".join(c if c == "\n" or not _oculto(c) else " " for c in str(valor or "")).strip()
     return s if len(s) <= tope else s[:tope] + "…"
 
 
@@ -198,7 +207,7 @@ def borrar_evento(ident, titulo, inicio):
     datos = _evento_dict(e)
     if str(e.title() or "").strip() != str(titulo or "").strip():
         raise AgendaError("el título no coincide con el del evento; no borro nada")
-    if _CONTROL.search(str(e.title() or "")):
+    if any(_oculto(c) for c in str(e.title() or "")):
         raise AgendaError("el título de ese evento trae caracteres ocultos; bórralo tú en Calendario")
     if str(inicio or "").strip() != datos["inicio"]:
         raise AgendaError("el inicio no coincide con el del evento; no borro nada")
@@ -286,7 +295,7 @@ def borrar_recordatorio(ident, titulo):
         raise AgendaError("no encuentro ese recordatorio; vuelve a listarlos para tener su id")
     if str(r.title() or "").strip() != str(titulo or "").strip():
         raise AgendaError("el título no coincide con el del recordatorio; no borro nada")
-    if _CONTROL.search(str(r.title() or "")):
+    if any(_oculto(c) for c in str(r.title() or "")):
         raise AgendaError("el título de ese recordatorio trae caracteres ocultos; bórralo tú en Recordatorios")
     datos = _recordatorio_dict(r)
     ok, err = store.removeReminder_commit_error_(r, True, None)

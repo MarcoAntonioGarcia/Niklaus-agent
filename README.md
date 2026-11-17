@@ -46,6 +46,8 @@ goes through an independent security review before it ships.
   text-to-speech are local.
 - **Calendar and reminders** — "what do I have today?", "remind me tomorrow at nine": it reads and writes
   the macOS calendar store directly, with no account tokens. Deleting always asks first.
+- **Memory** — short notes about you that last between conversations ("remember that…", "what do you
+  remember about me?", "forget that"). Plain data on your disk; it never changes the code or the permissions.
 
 ### Install
 
