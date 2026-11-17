@@ -385,6 +385,15 @@ class CerebroTest(unittest.TestCase):
         texto = " ".join(cmd)
         for f in ("--permission-prompt-tool stdio", "--allowedTools mcp__manos__*", "--strict-mcp-config", "--mcp-config"):
             self.assertIn(f, texto)
+        permitidas = cmd[cmd.index("--allowedTools") + 1].split(",")
+        self.assertIn("mcp__agenda__eventos", permitidas)
+        self.assertFalse([p for p in permitidas if "borrar" in p or p == "mcp__agenda__*"])   # deleting always asks
+        for h in ("mcp__agenda__borrar_evento", "mcp__agenda__borrar_recordatorio", "mcp__agenda__otra"):
+            self.assertEqual(voz.clasificar_permiso(h, {"id": "x", "titulo": "Junta"}), "preguntar")
+        raro = "Jun" + chr(0x200b) + "ta\n\x1b[2J" + chr(0x202e)
+        self.assertEqual(voz.describir_permiso("mcp__agenda__borrar_evento",
+                                               {"id": "x", "titulo": raro, "inicio": "2031-01-15T16:30"}),
+                         "borrar el evento: «Jun ta [2J (2031-01-15T16:30)»")
         herramientas = cmd[cmd.index("--tools") + 1].split(",")
         self.assertNotIn("Write", herramientas)
         self.assertNotIn("Edit", herramientas)

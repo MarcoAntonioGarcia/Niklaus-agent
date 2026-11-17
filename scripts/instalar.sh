@@ -80,7 +80,7 @@ crear_venv() {   # crear_venv <nombre> <archivo de requisitos> <módulo de prueb
 }
 
 paso "Entornos de Python (dentro de venv/)"
-crear_venv app app.txt "webview, mcp" "proxy-tools"
+crear_venv app app.txt "webview, mcp, EventKit" "proxy-tools"
 crear_venv qwen-mlx voz.txt "mlx_audio, sounddevice"
 
 paso "Modelo de voz (dentro de models/)"

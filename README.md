@@ -44,6 +44,8 @@ goes through an independent security review before it ships.
   reversible file tools (everything can be undone, deleting means the macOS Trash) and commands gated by
   an allowlist policy; anything hard to undo asks first, by voice and on screen. Speech-to-text and
   text-to-speech are local.
+- **Calendar and reminders** — "what do I have today?", "remind me tomorrow at nine": it reads and writes
+  the macOS calendar store directly, with no account tokens. Deleting always asks first.
 
 ### Install
 

@@ -23,6 +23,7 @@ pydantic_core==2.50.4
 PyJWT==2.15.1
 pyobjc-core==13.0
 pyobjc-framework-Cocoa==13.0
+pyobjc-framework-EventKit==13.0
 pyobjc-framework-Quartz==13.0
 pyobjc-framework-Security==13.0
 pyobjc-framework-UniformTypeIdentifiers==13.0

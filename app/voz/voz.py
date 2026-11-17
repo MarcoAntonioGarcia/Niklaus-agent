@@ -68,6 +68,11 @@ MAX_SEGUNDOS_TRABAJO = 30 * 60          # long agentic work (a panel of analyst 
 VENV_APP = NIKLAUS / "venv" / "app" / "bin" / "python"
 MANOS_SERVIDOR = NIKLAUS / "app" / "manos" / "servidor.py"
 PROMPT_MANOS = Path(__file__).with_name("prompt-manos.md")
+AGENDA_SERVIDOR = NIKLAUS / "app" / "agenda" / "servidor.py"
+# Calendar and reminders: reading, creating (never invites anyone) and moving (refuses events with attendees) run
+# without asking. The two delete tools are deliberately NOT here: the owner confirms each one on a card.
+AGENDA_SIN_PREGUNTAR = ("calendarios", "eventos", "crear_evento", "mover_evento", "recordatorios",
+                        "crear_recordatorio", "completar_recordatorio")
 CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
 FIN_FRASE = re.compile(r"(?<=[.!?…;:])\s+|\n+")
 URL = re.compile(r"https?://\S+")
@@ -476,10 +481,12 @@ class Cerebro:
             return [self.claude, "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
                     "--include-partial-messages", "--tools", TOOLS, "--strict-mcp-config", "--max-turns", MAX_TURNOS,
                     "--append-system-prompt", PROMPT_VOZ.read_text(encoding="utf-8"), "--model", self.modelo]
-        config = {"mcpServers": {"manos": {"command": str(VENV_APP), "args": ["-I", "-B", str(MANOS_SERVIDOR)]}}}
+        config = {"mcpServers": {"manos": {"command": str(VENV_APP), "args": ["-I", "-B", str(MANOS_SERVIDOR)]},
+                                 "agenda": {"command": str(VENV_APP), "args": ["-I", "-B", str(AGENDA_SERVIDOR)]}}}
+        permitidas = ",".join(["mcp__manos__*"] + [f"mcp__agenda__{h}" for h in AGENDA_SIN_PREGUNTAR])
         return [self.claude, "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
                 "--include-partial-messages", "--tools", TOOLS_MANOS, "--strict-mcp-config",
-                "--mcp-config", json.dumps(config), "--allowedTools", "mcp__manos__*",
+                "--mcp-config", json.dumps(config), "--allowedTools", permitidas,
                 "--permission-prompt-tool", "stdio", "--max-turns", MAX_TURNOS_MANOS,
                 "--append-system-prompt", prompt_manos(), "--model", self.modelo]
 
@@ -1193,6 +1200,9 @@ def entorno_claude():
     return {k: v for k, v in os.environ.items() if not malo.search(k)} | {"NIKLAUS_TERMINAL": "voz"}
 
 
+_OCULTOS = ((0x00, 0x08), (0x09, 0x1f), (0x7f, 0x9f), (0xad, 0xad), (0x200b, 0x200f), (0x2028, 0x202e), (0x2060, 0x2069), (0xfeff, 0xfeff))
+
+
 def describir_permiso(herramienta, entrada, corto=False):
     """What the owner is asked to approve, in plain words (the exact command is always shown on screen)."""
     if herramienta == "Bash":
@@ -1214,6 +1224,14 @@ def describir_permiso(herramienta, entrada, corto=False):
         return f"abrir la página {dominio}" if dominio else "abrir una página web"
     if herramienta == "WebSearch":
         return "buscar en internet" if corto else f"buscar: {entrada.get('query', '')}"
+    if herramienta in ("mcp__agenda__borrar_evento", "mcp__agenda__borrar_recordatorio"):
+        que = "el evento" if herramienta.endswith("evento") else "el recordatorio"
+        def limpio(clave, tope):                 # no control, bidi or zero-width characters on the card
+            s = "".join(" " if any(a <= ord(c) <= b for a, b in _OCULTOS) else c for c in str(entrada.get(clave, "")))
+            s = re.sub(r"\s+", " ", s).strip()
+            return s if len(s) <= tope else s[:tope] + "…"
+        titulo = limpio("titulo", 80) + (f" ({limpio('inicio', 16)})" if entrada.get("inicio") else "")      # the server only deletes on an exact title
+        return f"borrar {que} del calendario; míralo en la pantalla" if corto else f"borrar {que}: «{titulo}»"
     return f"usar {herramienta}" if corto else f"usar {herramienta}: {json.dumps(entrada, ensure_ascii=False)[:300]}"
 
 
