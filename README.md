@@ -32,12 +32,26 @@ goes through an independent security review before it ships.
 
 ## What it can do today
 
-- **Video analysis (`watch-local`)** — give it an Instagram, YouTube or TikTok link (or a local
+- **Video analysis (`darkroom`)** — give it an Instagram, YouTube or TikTok link (or a local
   file) and it downloads, extracts key frames, transcribes speech locally and produces a structured,
   extraction-only report (claims, resources, structure, key frames, full transcript), then cleans up
-  after itself.
+  after itself. the video tool, [Darkroom](https://github.com/MarcoAntonioGarcia/darkroom), lives in its own repository; Niklaus uses it
+  through `herramientas.toml`, its registry of tools.
 - **Local MCP server** — exposes the video analysis to the Claude desktop app (stdio, 7 tools,
   one analysis at a time, untrusted content clearly marked).
+
+- **Desktop voice app** — say its name and talk: it answers aloud and acts on the computer through
+  reversible file tools (everything can be undone, deleting means the macOS Trash) and commands gated by
+  an allowlist policy; anything hard to undo asks first, by voice and on screen. Speech-to-text and
+  text-to-speech are local.
+
+### Make it yours
+
+The repository holds only the generic agent. What is personal stays out of git:
+
+- `local/` — your job, your tools and your preferences (start from [`local.ejemplo/`](local.ejemplo/README.md)).
+- `skills.toml` — your catalog of skills (start from `skills.ejemplo.toml`).
+- `CLAUDE.md` — your own standing instructions for Claude Code in this folder.
 
 See [docs/architecture.md](docs/architecture.md) for how it works and
 [docs/history.md](docs/history.md) for how it was built.
@@ -55,10 +69,12 @@ See [docs/architecture.md](docs/architecture.md) for how it works and
 
 ```
 niklaus-agent/
-├── docs/                     architecture, history, credits
-└── plugins/                  one folder per capability, each installable on its own
-    └── watch-local/          video analysis: skill, sandboxed wrapper, tools, MCP server
+├── herramientas.toml         registry of the tools Niklaus uses (adding a tool = adding an entry)
+└── docs/                     architecture, history, credits
 ```
+
+Tools such as the video analysis (skill, sandboxed wrapper, tools, MCP server) live in their own
+repositories and folders.
 
 ## Credits
 

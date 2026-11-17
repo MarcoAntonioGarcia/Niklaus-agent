@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Niklaus: orbe">
+  <defs>
+    <radialGradient id="nucleo" cx="50%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#E8FDFF"/><stop offset=".35" stop-color="#5BE7FF"/>
+      <stop offset=".75" stop-color="#3A6BFF"/><stop offset="1" stop-color="#2A1B7A"/>
+    </radialGradient>
+    <filter id="brillo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <circle cx="256" cy="256" r="118" fill="#3FD8FF" opacity=".45" filter="url(#brillo)"/>
+  <circle cx="256" cy="256" r="104" fill="url(#nucleo)"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#5BE7FF" stroke-width="10" stroke-linecap="round"
+          stroke-dasharray="200 36 70 36 120 480" transform="rotate(-100 256 256)"/>
+  <circle cx="256" cy="256" r="186" fill="none" stroke="#8C7BFF" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="40 30 300 60 90 700" transform="rotate(40 256 256)" opacity=".9"/>
+  <path d="M196 256 q15 -34 30 0 t30 0 t30 0 t30 0" fill="none" stroke="#0B1030" stroke-width="12" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,25 @@
+# herramientas.toml — registry of the tools Niklaus uses.
+#
+# Each tool lives in its own folder (and its own repository) and is registered here with one
+# table. Adding a tool means adding one entry; nothing else in the agent has to change.
+#
+#   [<tool-name>]        short, unique name (letters, digits, ".", "_", "-")
+#   ruta                 the tool's folder ("~" is expanded to the user's home)
+#   descripcion          one line: what the tool does
+#   comando              entry point, relative to ruta
+#   mcp                  optional local MCP server: command and args, relative to ruta
+#   skill                optional Claude Code skill folder, relative to ruta
+#   agentes              optional subagent files the tool ships, relative to ruta
+#   desinstalador        the tool's own uninstaller, relative to ruta; the agent's uninstaller
+#                        offers to run it (asking tool by tool)
+#
+# Every relative path must stay inside ruta (no absolute paths, no "..").
+
+[darkroom]
+ruta = "~/Apps/darkroom"
+descripcion = "Private, injection-resistant video analysis: download, key frames and local transcription, sandboxed on macOS."
+comando = "scripts/darkroom.sh"
+mcp = { command = "venv/bin/python", args = ["-I", "-B", "mcp/darkroom/servidor.py"] }
+skill = "skills/darkroom"
+agentes = [".claude/agents/redactor-reporte.md"]
+desinstalador = "scripts/desinstalar.sh"

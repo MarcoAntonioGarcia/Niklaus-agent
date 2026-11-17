@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<!-- 'unsafe-eval' only because pywebview builds its JS bridge with new Function() and returns values through
+     eval(). No inline or remote script, no connections; outside text is never evaluated (always textContent). -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Niklaus</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<header>
+  <img src="../../marca/logo.svg" alt="" class="logo">
+  <span class="nombre">Niklaus</span>
+  <span class="estado-texto" id="estado-texto">cargando…</span>
+</header>
+<main>
+  <section class="centro">
+    <canvas id="orbe" aria-hidden="true"></canvas>
+    <p class="frase" id="frase">Preparando la voz y el cerebro…</p>
+    <div class="controles">
+      <button id="microfono" class="mic">Micrófono activo</button>
+      <button id="pantalla2" title="Abre el cerebro solo, para otro monitor">Abrir en otra pantalla</button>
+    </div>
+  </section>
+  <section class="derecha" aria-label="Conversación">
+    <div id="chat" aria-live="polite"></div>
+    <div class="barra">
+      <input id="texto" type="text" placeholder="Di «Niklaus…» o escribe aquí" maxlength="4000" autocomplete="off" aria-label="Escribe una orden">
+      <button id="detener" title="Interrumpir">Parar</button>
+      <button id="deshacer" title="Deshacer la última acción">Deshacer</button>
+    </div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

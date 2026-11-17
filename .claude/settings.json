@@ -1,0 +1,100 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Library/Frameworks/Python.framework/Versions/3.11/bin/python3.11 -I -B -S \"$CLAUDE_PROJECT_DIR/tools/bitacora.py\" || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "ask": [
+      "Edit(~/Apps/Niklaus/.claude/**)",
+      "Edit(~/Apps/Niklaus/tools/**)",
+      "Edit(~/Apps/Niklaus/app/**)",
+      "Edit(~/Apps/Niklaus/scripts/**)",
+      "Edit(~/Apps/Niklaus/skills/**)",
+      "Edit(~/Apps/Niklaus/docs/**)",
+      "Edit(~/Apps/Niklaus/local/**)",
+      "Edit(~/Apps/Niklaus/herramientas.toml)",
+      "Edit(~/Apps/Niklaus/skills.toml)",
+      "Edit(~/Apps/Niklaus/CLAUDE.md)",
+      "Edit(~/Apps/Niklaus/INVENTARIO.md)",
+      "Edit(~/Apps/Niklaus/.mcp.json)",
+      "Edit(~/Apps/darkroom/**)",
+      "Edit(~/.claude/**)",
+      "Edit(~/.claude.json)",
+      "Edit(~/.zshrc)",
+      "Edit(~/.zprofile)",
+      "Edit(~/.bash_profile)",
+      "Edit(~/Library/LaunchAgents/**)",
+      "Write(~/Apps/Niklaus/.claude/**)",
+      "Write(~/Apps/Niklaus/tools/**)",
+      "Write(~/Apps/Niklaus/app/**)",
+      "Write(~/Apps/Niklaus/scripts/**)",
+      "Write(~/Apps/Niklaus/skills/**)",
+      "Write(~/Apps/Niklaus/docs/**)",
+      "Write(~/Apps/Niklaus/local/**)",
+      "Write(~/Apps/Niklaus/herramientas.toml)",
+      "Write(~/Apps/Niklaus/skills.toml)",
+      "Write(~/Apps/Niklaus/CLAUDE.md)",
+      "Write(~/Apps/Niklaus/INVENTARIO.md)",
+      "Write(~/Apps/Niklaus/.mcp.json)",
+      "Write(~/Apps/darkroom/**)",
+      "Write(~/.claude/**)",
+      "Write(~/.claude.json)",
+      "Write(~/.zshrc)",
+      "Write(~/.zprofile)",
+      "Write(~/.bash_profile)",
+      "Write(~/Library/LaunchAgents/**)",
+      "WebFetch",
+      "WebSearch",
+      "Bash(orbit:*)",
+      "Bash(orbit *)",
+      "Bash(rtk orbit:*)",
+      "Bash(rtk orbit *)"
+    ],
+    "deny": [
+      "Read(~/.ssh/**)",
+      "Read(~/.zshrc)",
+      "Read(~/.zprofile)",
+      "Read(~/.bash_profile)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/**)",
+      "Read(~/.docker/**)",
+      "Read(~/.gitconfig)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.claude.json)",
+      "Read(~/Library/Keychains/**)",
+      "Read(~/Library/Cookies/**)",
+      "Read(~/Library/Safari/**)",
+      "Read(~/Library/Application Support/Google/Chrome/**)",
+      "Read(~/Library/Application Support/BraveSoftware/**)",
+      "Read(~/Library/Application Support/Firefox/**)",
+      "Read(~/Library/Application Support/Arc/**)",
+      "Read(~/Library/Application Support/Microsoft Edge/**)",
+      "Read(~/Library/Containers/com.apple.Safari/**)",
+      "Read(~/.zsh_history)",
+      "Read(~/.zshenv)",
+      "Read(~/.bash_history)",
+      "Read(~/.netrc)",
+      "Read(~/.git-credentials)",
+      "Read(~/.npmrc)",
+      "Read(~/.pypirc)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.claude/projects/**/*.jsonl)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(~/.zsh_sessions/**)",
+      "Read(~/Library/Application Support/Claude/**)",
+      "Read(~/.local/share/claude/**)",
+      "Read(~/.cagent/**)"
+    ]
+  }
+}

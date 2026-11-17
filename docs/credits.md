@@ -2,6 +2,10 @@
 
 ## Code and tools we build on
 
+The video analysis tool now lives in its own repository, [Darkroom](https://github.com/MarcoAntonioGarcia/darkroom), with its own
+credits; Niklaus uses it through `herramientas.toml`. Except for Claude, the components below are
+the ones that tool builds on.
+
 | Project | License | How it is used |
 |---|---|---|
 | [bradautomates/claude-video](https://github.com/bradautomates/claude-video) | MIT | Starting point of the video analysis. Audited at commit `03ceb42`; it is **not copied** into this repository — the wrapper calls a pinned, verified clone. |
@@ -10,6 +14,8 @@
 | [WhisperX](https://github.com/m-bain/whisperX) / faster-whisper | BSD-2 / MIT | Local speech-to-text (Phase B, no network). |
 | [Deno](https://deno.com) | MIT | JS challenge for YouTube inside the download sandbox (pinned by SHA-256). Not redistributed. |
 | [Model Context Protocol Python SDK](https://github.com/modelcontextprotocol/python-sdk) | MIT | Local MCP server. |
+| [Everything Claude Code](https://github.com/affaan-m/ECC) | MIT | Four subagent definitions adapted from commit `d2ef268` (`planner`, `code-explorer`, `silent-failure-hunter`, `opensource-sanitizer`) and the "one executes, two validate" pattern (`santa-method`, by Ronald Skelton, and `loop-design-check`). The plugin itself is not installed. |
+| [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | MIT | Three skills adapted from commit `39b723c`: `doubt-driven-development` (without its cross-model review), `documentation-and-adrs` and `debugging-and-error-recovery`. The plugin itself is not installed. |
 | [Claude](https://www.anthropic.com/claude) (Claude Code, desktop app) | — | The agent's brain, through a flat subscription. Not affiliated. |
 
 ## Projects and ideas we reviewed

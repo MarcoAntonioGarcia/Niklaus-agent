@@ -1,6 +1,6 @@
 # Architecture and security model
 
-This describes the first capability, **video analysis (`watch-local`)**, and the local MCP server
+This describes the first capability, **video analysis (`darkroom`)**, and the local MCP server
 that exposes it. Everything else in Niklaus will follow the same pattern.
 
 ## Overview

@@ -1,0 +1,63 @@
+;; voz.sb — Niklaus voice workers: speech-to-text (faster-whisper, Darkroom's venv) and Serena
+;; text-to-speech (Qwen3-TTS MLX, Niklaus's venv/qwen-mlx). Hardened like Darkroom's sin-red.sb.
+;; - No network of any kind, and no indirect paths to it: no Apple Events, no pasteboard, no
+;;   LaunchServices/nsurlsessiond/AuthBroker/networkd, no preferences or notifications.
+;; - Reads inside HOME: only the two voice venvs, the voice models, models/cache, data/voz/tmp and the
+;;   recording itself (AUDIO, literal). Nothing else of data/voz, the agent or Darkroom.
+;; - Writes: only data/voz/tmp, models/cache and a few /dev nodes. Nothing anywhere else on disk.
+;; - Exec: only the two Pythons. No fork: the workers use threads only.
+;; - No signals or process inspection of others; no SysV IPC or mach-register.
+;; The workers' code is passed with -c: they never read app/.
+;; Usage: sandbox-exec -f voz.sb -D NIKLAUS=… -D DARKROOM=… -D HOME=<real home> -D AUDIO=<turno.wav> <cmd…>
+(version 1)
+(allow default)
+
+(deny network*)
+
+(deny file-read-data (subpath (param "HOME")))
+(allow file-read-data
+  (subpath (string-append (param "NIKLAUS") "/venv/qwen-mlx"))
+  (subpath (string-append (param "NIKLAUS") "/models/huggingface"))
+  (subpath (string-append (param "NIKLAUS") "/models/cache"))
+  (subpath (string-append (param "NIKLAUS") "/data/voz/tmp"))
+  (literal (param "AUDIO"))
+  (subpath (string-append (param "DARKROOM") "/venv"))
+  (subpath (string-append (param "DARKROOM") "/models/huggingface")))
+
+(deny file-read-xattr (subpath "/Users"))
+
+(deny file-write*)
+(allow file-write*
+  (subpath (string-append (param "NIKLAUS") "/data/voz/tmp"))
+  (subpath (string-append (param "NIKLAUS") "/models/cache"))
+  (literal "/dev/null")
+  (literal "/dev/zero")
+  (literal "/dev/tty")
+  (literal "/dev/dtracehelper")
+  (regex #"^/dev/fd/[0-9]+$"))
+
+(deny process-exec)
+(allow process-exec
+  (literal (string-append (param "NIKLAUS") "/venv/qwen-mlx/bin/python"))
+  (literal (string-append (param "DARKROOM") "/venv/bin/python"))
+  (subpath "/Library/Frameworks/Python.framework/Versions/3.11"))
+(deny process-fork)
+
+(deny ipc-sysv* mach-register)
+;; "(target others)" filters are not enforced on this macOS: deny all, then allow self/children.
+(deny signal)
+(allow signal (target self) (target children))
+(deny process-info*)
+(allow process-info* (target self) (target children))
+(deny user-preference-read user-preference-write)
+(deny darwin-notification-post)
+(deny appleevent-send)
+(deny mach-lookup
+  (global-name "com.apple.pasteboard.1")
+  (global-name "com.apple.nsurlsessiond")
+  (global-name "com.apple.nsurlsessiond-launchondemand")
+  (global-name "com.apple.coreservices.launchservicesd")
+  (global-name "com.apple.siriactionsd.xpc")
+  (global-name "com.apple.shortcuts.systemshortcutservice.runner")
+  (global-name "com.apple.cfnetwork.AuthBrokerAgent")
+  (global-name "com.apple.networkd_privileged"))

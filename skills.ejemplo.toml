@@ -1,0 +1,82 @@
+# Ejemplo de skills.toml: cópialo como skills.toml (no se publica) y agrega las tuyas. Es el catálogo de las skills
+# del dueño (fuente de verdad), como herramientas.toml para las herramientas.
+#
+# Cada skill es una tabla [nombre]:
+#   ruta         carpeta con el SKILL.md ("~" se expande). Las de terceros apuntan a su copia local auditada.
+#   gestor       quién la mantiene: "niklaus" (Niklaus decide), "darkroom" (la herramienta), o cualquier otro
+#                nombre (por ejemplo el de tu trabajo: Niklaus nunca mueve ni borra las de otros gestores)
+#   ambito       dónde se carga su descripción (cuesta contexto en cada sesión):
+#                  "global"     ~/.claude/skills (todas las sesiones, también las del trabajo)
+#                  "niklaus"    ~/Apps/Niklaus/.claude/skills (solo las sesiones de Niklaus)
+#                  "biblioteca" no se carga; se activa bajo demanda con la skill buscar-skill
+#   categoria    agente | desarrollo | seguridad | diseño | investigación | contenido | trabajo
+#   fuente       de dónde viene; licencia; commit si es de terceros (copia fijada)
+#   riesgos      lo que la auditoría encontró (red, hooks, servicios externos); vacío si nada
+#   etiquetas    palabras para buscarla
+#
+# Cambiar el ámbito de una skill: editar esta tabla y correr `tools/skills.py aplicar` (y `--global` si toca
+# ~/.claude/skills, siempre con el OK del dueño). Agregar una skill: auditarla primero, como ECC o agent-skills.
+
+# ---------- Niklaus ----------
+
+[buscar-skill]
+ruta = "~/Apps/Niklaus/skills/buscar-skill"
+gestor = "niklaus"
+ambito = "niklaus"
+categoria = "agente"
+fuente = "propia"
+licencia = "MIT"
+etiquetas = ["catálogo", "skills", "buscar", "activar"]
+
+[darkroom]
+ruta = "~/Apps/darkroom/skills/darkroom"
+gestor = "darkroom"
+ambito = "global"
+categoria = "contenido"
+fuente = "propia (Darkroom, github.com/MarcoAntonioGarcia/Darkroom)"
+licencia = "MIT"
+riesgos = "descarga con red en su sandbox; cookies solo con OK del dueño"
+etiquetas = ["video", "instagram", "youtube", "tiktok", "transcripción", "reel"]
+
+[app-lista-produccion]
+ruta = "~/Apps/Niklaus/skills/app-lista-produccion"
+gestor = "niklaus"
+ambito = "global"
+categoria = "desarrollo"
+fuente = "propia"
+licencia = "MIT"
+etiquetas = ["producción", "lanzamiento", "checklist", "cobrar"]
+
+[doubt-driven-development]
+ruta = "~/Apps/Niklaus/skills/doubt-driven-development"
+gestor = "niklaus"
+ambito = "niklaus"
+categoria = "desarrollo"
+fuente = "addyosmani/agent-skills"
+licencia = "MIT"
+commit = "39b723c"
+riesgos = "el original ofrece revisión con otros modelos (Gemini, Codex): quitado en la copia (regla 1)"
+etiquetas = ["dudar", "revisión adversarial", "decisiones", "uno ejecuta dos validan"]
+
+[documentation-and-adrs]
+ruta = "~/Apps/Niklaus/skills/documentation-and-adrs"
+gestor = "niklaus"
+ambito = "niklaus"
+categoria = "desarrollo"
+fuente = "addyosmani/agent-skills"
+licencia = "MIT"
+commit = "39b723c"
+etiquetas = ["ADR", "decisiones", "documentación", "README", "changelog"]
+
+[debugging-and-error-recovery]
+ruta = "~/Apps/Niklaus/skills/debugging-and-error-recovery"
+gestor = "niklaus"
+ambito = "niklaus"
+categoria = "desarrollo"
+fuente = "addyosmani/agent-skills"
+licencia = "MIT"
+commit = "39b723c"
+etiquetas = ["depurar", "errores", "pruebas que fallan", "causa raíz"]
+
+# ---------- Diseño (globales de terceros, gestionadas por orbit) ----------
+

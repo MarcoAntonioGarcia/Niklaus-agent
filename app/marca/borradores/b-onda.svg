@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Niklaus: N de onda">
+  <defs>
+    <linearGradient id="trazo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5BE7FF"/><stop offset="1" stop-color="#8C7BFF"/>
+    </linearGradient>
+    <filter id="brillo" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+  <rect x="40" y="40" width="432" height="432" rx="120" fill="#0B1030"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M160 352 V176 C160 150 186 142 200 162 L312 350 C326 370 352 362 352 336 V160" stroke="#5BE7FF" stroke-width="44" opacity=".35" filter="url(#brillo)"/>
+    <path d="M160 352 V176 C160 150 186 142 200 162 L312 350 C326 370 352 362 352 336 V160" stroke="url(#trazo)" stroke-width="40"/>
+  </g>
+  <circle cx="352" cy="140" r="14" fill="#E8FDFF"/>
+</svg>

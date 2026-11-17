@@ -1,6 +1,6 @@
 # Niklaus — what is NEVER published (personal data, models, environments, third-party clones).
 
-# Datos de Marco y de los análisis: videos, reportes (contenido de terceros), transcripciones,
+# Datos del dueño y de los análisis: videos, reportes (contenido de terceros), transcripciones,
 # manifiestos, estado del MCP y la bitácora (respuestas de Claude).
 /data/
 
@@ -17,6 +17,9 @@ __pycache__/
 
 # Personal / de trabajo del día a día (no es del proyecto público).
 /PENDIENTES.md
+/CLAUDE.md
+/skills.toml
+/local/
 /INVENTARIO.md
 .claude/settings.local.json
 
@@ -24,3 +27,13 @@ __pycache__/
 *.bak
 *.tmp
 .DS_Store
+
+# Copias aisladas de los agentes del orquestador.
+/.claude/worktrees/
+
+# Binarios de terceros (escáneres) y auditorías de repos ajenos.
+/tools/bin/
+/auditorias/
+
+# Enlaces que genera tools/skills.py aplicar (rutas absolutas de esta Mac).
+/.claude/skills/
