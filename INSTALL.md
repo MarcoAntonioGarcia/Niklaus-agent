@@ -46,6 +46,10 @@ permission; the first time, macOS asks you to allow the microphone for Terminal.
 
 Say **"Niklaus"** followed by what you need, or type in the box. It answers in Spanish.
 
+Mail, Notes and the Mac controls also ask once, as "Terminal wants to control …" (Automation). Media keys need
+Terminal in Privacy & Security → Accessibility. Mail reads the accounts you added to the Mail app: add Gmail or
+Outlook in System Settings → Internet Accounts with Mail and Calendars on, and both mail and agenda see them.
+
 The first time you ask about your calendar or reminders, macOS asks you to allow Terminal to access
 them. It reads the calendars your Mac already has (System Settings → Internet Accounts); it stores no
 account tokens. Creating an event never invites anyone, and deleting always asks first.
@@ -77,5 +81,6 @@ Everything personal lives in files that git ignores:
 ## Uninstall
 
 `scripts/desinstalar.sh` removes the folder, the links it placed in `~/.claude` and the one line it
-added to `~/.claude/CLAUDE.md`, asking first. The macOS permissions you granted to Terminal (microphone, calendars, reminders) are
+added to `~/.claude/CLAUDE.md`, asking first. The macOS permissions you granted to Terminal (microphone, calendars, reminders, automation,
+accessibility) are
 removed by hand in System Settings → Privacy & Security.

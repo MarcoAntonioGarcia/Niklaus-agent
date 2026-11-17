@@ -321,6 +321,11 @@ class CerebroTest(unittest.TestCase):
                 (voz.LOCAL / "ajustes.json").write_text('{"nombres": ["Viernes", "Vier", "x", "dos palabras", 7]}')
                 os.chmod(voz.LOCAL / "ajustes.json", 0o600)
                 self.assertEqual(voz._nombres_locales(), ["Viernes", "Vier"])
+                (voz.LOCAL / "ajustes.json").write_text('{"atajos_libres": ["Modo reunión"]}')
+                c = lambda e: voz.clasificar_permiso("mcp__mac__correr_atajo", e)
+                self.assertEqual(c({"nombre": "modo REUNIÓN"}), "permitir")                # listed by the owner
+                self.assertEqual(c({"nombre": "Modo reunión", "entrada": "x"}), "preguntar")  # with input: asks
+                self.assertEqual(c({"nombre": "Otro atajo"}), "preguntar")
             finally:
                 voz.LOCAL = real
 
@@ -393,7 +398,16 @@ class CerebroTest(unittest.TestCase):
         self.assertEqual(voz.describir_permiso("mcp__memoria__recordar", {"texto": oculta}),
                          "anotar en la memoria: «Le gusta el cafe»")
         self.assertNotIn(chr(0x202e), voz.describir_permiso("mcp__otra__x", {"a": "b" + chr(0x202e)}))
-        self.assertEqual(sorted(json.loads(cmd[cmd.index("--mcp-config") + 1])["mcpServers"]), ["agenda", "manos", "memoria"])
+        self.assertEqual(sorted(json.loads(cmd[cmd.index("--mcp-config") + 1])["mcpServers"]),
+                         ["agenda", "correo", "mac", "manos", "memoria", "notas"])
+        for h in ("mcp__mac__volumen", "mcp__correo__borrador", "mcp__notas__crear_nota"):
+            self.assertIn(h, permitidas)
+        for h in ("mcp__mac__cerrar_app", "mcp__mac__correr_atajo", "mcp__notas__agregar_a_nota", "mcp__correo__*",
+                  "mcp__mac__*", "mcp__notas__*"):
+            self.assertNotIn(h, permitidas)
+            self.assertEqual(voz.clasificar_permiso(h, {"nombre": "x", "id": "x", "titulo": "x", "texto": "x"}), "preguntar")
+        self.assertEqual(voz.describir_permiso("mcp__mac__correr_atajo", {"nombre": "Luces" + chr(0x202e), "entrada": "on"}),
+                         "correr el atajo «Luces» con el texto «on»")
         self.assertIn("mcp__agenda__eventos", permitidas)
         self.assertFalse([p for p in permitidas if "borrar" in p or p == "mcp__agenda__*"])   # deleting always asks
         for h in ("mcp__agenda__borrar_evento", "mcp__agenda__borrar_recordatorio", "mcp__agenda__otra"):
@@ -407,6 +421,34 @@ class CerebroTest(unittest.TestCase):
         self.assertNotIn("Edit", herramientas)
         self.assertNotIn("bypassPermissions", texto)
         self.assertNotIn("dangerously", texto)
+
+    def test_tras_leer_correo_o_notas_toda_salida_pregunta(self):
+        self.assertTrue(voz.es_salida("WebFetch", {"url": "https://x.example"}))
+        self.assertTrue(voz.es_salida("Bash", {"command": "open https://x.example/?d=1"}))
+        self.assertFalse(voz.es_salida("Bash", {"command": "open -a Safari"}))
+        self.assertFalse(voz.es_salida("mcp__agenda__eventos", {}))
+        pedidos = []
+        c = voz.Cerebro(self.FALSO, "sonnet", manos=True, permisos=lambda h, e: pedidos.append(h) or False)
+        real = voz.MARCA_PRIVADO
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            try:
+                voz.MARCA_PRIVADO = Path(d) / "leyo-privado"
+                web = {"url": "https://x.example/?d=secreto"}
+                self.assertTrue(c._preguntar("WebFetch", web, Muda()))                 # nothing private seen: free
+                self.assertTrue(c._preguntar("Bash", {"command": "open https://x.example"}, Muda()))
+                voz.MARCA_PRIVADO.touch()                                              # a server (or subagent) read mail
+                self.assertFalse(c._preguntar("WebFetch", web, Muda()))                # now it asks (and was denied)
+                self.assertFalse(c._preguntar("Bash", {"command": "open https://x.example"}, Muda()))
+                self.assertEqual(pedidos, ["WebFetch", "Bash"])
+                voz.MARCA_PRIVADO.unlink()
+                c.leyo_privado = True                                                  # seen in the stream
+                self.assertFalse(c._preguntar("WebSearch", {"query": "x"}, Muda()))
+                c.leyo_privado = False
+                os.symlink("/etc/hosts", voz.MARCA_PRIVADO)                            # odd marker: fails closed
+                self.assertFalse(c._preguntar("WebSearch", {"query": "x"}, Muda()))
+            finally:
+                voz.MARCA_PRIVADO = real
 
     def test_memoria_va_al_final_del_prompt(self):
         import tempfile

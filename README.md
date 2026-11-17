@@ -46,6 +46,11 @@ goes through an independent security review before it ships.
   text-to-speech are local.
 - **Calendar and reminders** — "what do I have today?", "remind me tomorrow at nine": it reads and writes
   the macOS calendar store directly, with no account tokens. Deleting always asks first.
+- **Your Mac** — volume, play/pause/next for whatever is playing (Spotify in the browser too), dark mode,
+  display sleep, battery, and your own Shortcuts by name. Closing an app or running a Shortcut asks first.
+- **Mail and Notes** — reads and summarizes your inbox in the Mail app and opens drafts (it never sends);
+  searches, reads and creates Apple Notes (appending to an existing note asks first).
+- **"Good morning"** — today's agenda, reminders due, and unread mail in four sentences.
 - **Memory** — short notes about you that last between conversations ("remember that…", "what do you
   remember about me?", "forget that"). Plain data on your disk; it never changes the code or the permissions.
 

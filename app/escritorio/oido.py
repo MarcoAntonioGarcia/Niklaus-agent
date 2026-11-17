@@ -28,7 +28,8 @@ MIN_CUADROS, MAX_CUADROS = 10, 500   # 0.3 s … 15 s
 # Also the short forms the owner uses: Nik, Nick, "Nikalus" (2026-11-16).
 # Its full name is Marcus Niklaus (2026-11-16): Marcus/Markus also wake it, and so does the phrase "a trabajar".
 # Short forms as Whisper really writes them when the owner says "Nick": nik, nick, nic, nique, niki, nicky, neck…
-_NOMBRE = re.compile(r"\b(ni(c|k|ck)(o?laus|alus)?|ni(que|ki|kki|cky|cki|q)|neck|mar[ck]us)\b")
+# Whisper sometimes glues the greeting to the name: "Hey Nick" -> «Eynick», "Oye Nik" -> «Oyenik» (owner, 2026-11-17).
+_NOMBRE = re.compile(r"\b((h?e[iy]|oye?)?ni(c|k|ck)(o?laus|alus)?|(h?e[iy]|oye?)?ni(que|ki|kki|cky|cki|q)|neck|mar[ck]us)\b")
 _FRASE = re.compile(r"^(hey|ey|oye|hola|bueno|ok|okay)?\s*a trabajar\b")
 
 

@@ -79,7 +79,7 @@ def _controles():
     return [NIKLAUS / p for p in (".claude", ".git", "tools", "app", "scripts", "skills", "venv", "models", "local",
                                   "herramientas.toml", "skills.toml", "INVENTARIO.md", "PENDIENTES.md")] + \
            [NIKLAUS / "data" / "manos", NIKLAUS / "data" / "bitacora", NIKLAUS / "data" / "voz",
-            NIKLAUS / "data" / "memoria", DATA,
+            NIKLAUS / "data" / "memoria", NIKLAUS / "data" / "sesion", NIKLAUS / "data" / "mac", DATA,
             HOME / "Apps" / "darkroom"] + SISTEMA
 
 

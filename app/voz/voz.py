@@ -70,6 +70,13 @@ MANOS_SERVIDOR = NIKLAUS / "app" / "manos" / "servidor.py"
 PROMPT_MANOS = Path(__file__).with_name("prompt-manos.md")
 AGENDA_SERVIDOR = NIKLAUS / "app" / "agenda" / "servidor.py"
 MEMORIA_SERVIDOR = NIKLAUS / "app" / "memoria" / "servidor.py"
+# The Mac's own apps. Each server is a fixed set of actions; these run without asking. What is left out asks the
+# owner on a card: closing an app, running a Shortcut (unless local/ajustes.json lists it in "atajos_libres") and
+# appending to an existing note. Mail never sends anything: drafts open in a Mail window for the owner.
+SERVIDORES_APPLE = {"mac": ("volumen", "multimedia", "spotify", "modo_oscuro", "dormir_pantalla", "estado",
+                            "apps_abiertas", "atajos"),
+                    "correo": ("correos", "leer_correo", "borrador", "responder"),
+                    "notas": ("notas", "leer_nota", "crear_nota")}
 sys.path.insert(0, str(NIKLAUS / "app" / "memoria"))
 import memoria  # noqa: E402  (standard library only: the notes the assistant keeps about its owner)
 # Calendar and reminders: reading, creating (never invites anyone) and moving (refuses events with attendees) run
@@ -471,6 +478,7 @@ class Cerebro:
         which Claude Code sends to `permisos(tool, input) -> bool` before running (owner's confirmation).
         aviso(tipo, valor): optional callback for a UI (text, tools, results, permissions)."""
         self.claude, self.modelo, self.manos, self.politica = claude, modelo, manos, politica
+        self.leyo_privado, self.inicio_contexto = False, time.time()    # see es_salida
         self.permisos = permisos or permiso_por_terminal
         self.aviso = aviso or (lambda tipo, valor: None)
         self.cancelar = threading.Event()
@@ -486,11 +494,14 @@ class Cerebro:
                     "--append-system-prompt", PROMPT_VOZ.read_text(encoding="utf-8"), "--model", self.modelo]
         config = {"mcpServers": {"manos": {"command": str(VENV_APP), "args": ["-I", "-B", str(MANOS_SERVIDOR)]},
                                  "agenda": {"command": str(VENV_APP), "args": ["-I", "-B", str(AGENDA_SERVIDOR)]},
-                                 "memoria": {"command": str(VENV_APP), "args": ["-I", "-B", str(MEMORIA_SERVIDOR)]}}}
+                                 "memoria": {"command": str(VENV_APP), "args": ["-I", "-B", str(MEMORIA_SERVIDOR)]},
+                                 **{n: {"command": str(VENV_APP), "args": ["-I", "-B", str(NIKLAUS / "app" / n / "servidor.py")]}
+                                    for n in SERVIDORES_APPLE}}}
         # memory: listing and forgetting run alone; WRITING a note is confirmed by the owner, because a note goes
         # into the system prompt of every later session (a poisoned note would persist).
         permitidas = ",".join(["mcp__manos__*", "mcp__memoria__notas", "mcp__memoria__olvidar"]
-                              + [f"mcp__agenda__{h}" for h in AGENDA_SIN_PREGUNTAR])
+                              + [f"mcp__agenda__{h}" for h in AGENDA_SIN_PREGUNTAR]
+                              + [f"mcp__{s}__{h}" for s, hs in SERVIDORES_APPLE.items() for h in hs])
         return [self.claude, "-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose",
                 "--include-partial-messages", "--tools", TOOLS_MANOS, "--strict-mcp-config",
                 "--mcp-config", json.dumps(config), "--allowedTools", permitidas,
@@ -506,6 +517,8 @@ class Cerebro:
             raise RuntimeError("la sesión ya se cerró")
         self.cerrar()
         self.log = abrir_log("claude.log")      # why claude died must never be lost (validator A1)
+        if not reanudar:                        # a resumed session keeps its context, so it keeps the flag too
+            self.leyo_privado, self.inicio_contexto = False, time.time()
         cmd = self._comando()
         if reanudar and self.sid:
             cmd += ["--resume", self.sid]
@@ -539,6 +552,19 @@ class Cerebro:
         self.p.stdin.write(json.dumps(obj, ensure_ascii=True) + "\n")
         self.p.stdin.flush()
 
+    def _leyo_privado(self):
+        """The model has seen mail or notes in this context: by its own tool calls, or (subagents too) by the
+        marker the mail/notes servers write. Fails closed if the marker cannot be checked."""
+        if self.leyo_privado:
+            return True
+        try:
+            st = os.lstat(MARCA_PRIVADO)
+        except FileNotFoundError:
+            return False
+        except OSError:
+            return True
+        return os.path.islink(MARCA_PRIVADO) or st.st_mtime >= self.inicio_contexto - 1
+
     def _preguntar(self, herramienta, entrada, voz):
         """Ask the owner (UI or terminal handler) with a hard deadline; anything but an explicit yes is a no.
         self.plazo is the absolute deadline (time.monotonic()) that a UI must honour too."""
@@ -546,6 +572,8 @@ class Cerebro:
         self.motivo_negacion = None
         if self.manos and self.politica:
             decision = clasificar_permiso(herramienta, entrada)
+            if decision == "permitir" and es_salida(herramienta, entrada) and self._leyo_privado():
+                decision = "preguntar"          # private mail/notes are in the context: no silent way out
             if decision == "permitir":
                 self.aviso("auto", (herramienta, entrada))
                 return True
@@ -740,6 +768,8 @@ class Cerebro:
                 self.sid = e[1]
             elif e[0] == "herramienta":
                 vio_algo = True
+                if e[1] in LECTURAS_PRIVADAS:
+                    self.leyo_privado = True
                 if not avisado and t_token is None:     # silence while it reads: say something right away
                     avisado = True
                     decir("Déjame revisar.")
@@ -1106,6 +1136,31 @@ NOMBRES_PROPIOS = _nombres_locales()
 PALABRAS_CLAVE = ", ".join(NOMBRES_PROPIOS) if NOMBRES_PROPIOS else "Niklaus, Nik, Nick, Marcus"
 
 
+LECTURAS_PRIVADAS = {"mcp__correo__correos", "mcp__correo__leer_correo", "mcp__notas__notas", "mcp__notas__leer_nota"}
+MARCA_PRIVADO = NIKLAUS / "data" / "sesion" / "leyo-privado"
+
+
+def es_salida(herramienta, entrada):
+    """Would this send something to a server the attacker could pick? Web requests and links opened in the browser."""
+    if herramienta in ("WebFetch", "WebSearch"):
+        return True
+    if herramienta == "Bash":
+        return re.search(r"\bopen\b.*\b(https?|ftp|mailto|sms|tel|facetime)[:]", str(entrada.get("command", "")), re.I) is not None
+    return False
+
+
+def _atajos_libres():
+    """Shortcut names the owner lets run without a card (local/ajustes.json: "atajos_libres"); read on every request."""
+    ruta = _archivo_local("ajustes.json")
+    if ruta is None:
+        return set()
+    try:
+        lista = json.loads(ruta.read_text(encoding="utf-8")).get("atajos_libres", [])
+    except (OSError, ValueError, AttributeError, RecursionError):
+        return set()
+    return {memoria.limpiar(x)[:80].casefold() for x in lista if isinstance(x, str)} if isinstance(lista, list) else set()
+
+
 def prompt_manos():
     """The public prompt plus the owner's private section (local/prompt.md: their work, tools and preferences)."""
     texto = PROMPT_MANOS.read_text(encoding="utf-8")
@@ -1188,6 +1243,9 @@ def clasificar_permiso(herramienta, entrada):
         if "/" not in ruta.replace(HOME_REAL + "/", "", 1) and en_home and "." not in partes[-1]:
             return "preguntar"                      # a bare file in the home without extension (e.g. ~/zshrc): ask
         return "permitir"
+    if herramienta == "mcp__mac__correr_atajo":
+        nombre = memoria.limpiar(entrada.get("nombre", ""))[:80].casefold()
+        return "permitir" if nombre and nombre in _atajos_libres() and not entrada.get("entrada") else "preguntar"
     if herramienta != "Bash":
         return "preguntar"
     cmd = str(entrada.get("command", "")).strip()
@@ -1231,6 +1289,14 @@ def describir_permiso(herramienta, entrada, corto=False):
     def limpio(clave, tope):                     # what the owner reads on the card: no invisible characters
         s = memoria.limpiar(entrada.get(clave, ""))
         return s if len(s) <= tope else s[:tope] + "…"
+    if herramienta == "mcp__mac__cerrar_app":
+        return "cerrar una app" if corto else f"cerrar la app «{limpio('nombre', 60)}»"
+    if herramienta == "mcp__mac__correr_atajo":
+        extra = f" con el texto «{limpio('entrada', 520)}»" if entrada.get("entrada") else ""
+        return "correr un atajo; míralo en la pantalla" if corto else f"correr el atajo «{limpio('nombre', 80)}»{extra}"
+    if herramienta == "mcp__notas__agregar_a_nota":
+        return ("agregar texto a una nota; míralo en la pantalla" if corto
+                else f"agregar a la nota «{limpio('titulo', 80)}»: «{limpio('texto', 1020)}»")
     if herramienta == "mcp__memoria__recordar":
         return "anotar algo en mi memoria; míralo en la pantalla" if corto else f"anotar en la memoria: «{limpio('texto', 320)}»"
     if herramienta in ("mcp__agenda__borrar_evento", "mcp__agenda__borrar_recordatorio"):
