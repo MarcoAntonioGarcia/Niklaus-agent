@@ -7,6 +7,7 @@ your machine: it is where your job, your tools and your preferences go, so the p
 |---|---|
 | `prompt.md` | Appended to the assistant's prompt: how to work with *your* tools, tickets and conventions. |
 | `politica.py` | Permission rules for *your* command-line tools: which subcommands run without asking. |
+| `ajustes.json` | `{"nombres": ["Viernes", "Vier"]}`: the names it wakes up to (single words; the first is its name). |
 | `mapa.json` | Extra nodes for the knowledge map on screen. |
 
 Rules the app enforces: the folder and its files must be yours, not links, and not writable by anyone else;

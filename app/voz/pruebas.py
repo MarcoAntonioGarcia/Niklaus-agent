@@ -317,6 +317,10 @@ class CerebroTest(unittest.TestCase):
                 os.symlink("/etc/hosts", p)
                 self.assertEqual(voz._cargar_locales(), {})                 # a link: ignored
                 self.assertIn("ERES", voz.prompt_manos())
+                self.assertIsNone(voz._nombres_locales())
+                (voz.LOCAL / "ajustes.json").write_text('{"nombres": ["Viernes", "Vier", "x", "dos palabras", 7]}')
+                os.chmod(voz.LOCAL / "ajustes.json", 0o600)
+                self.assertEqual(voz._nombres_locales(), ["Viernes", "Vier"])
             finally:
                 voz.LOCAL = real
 

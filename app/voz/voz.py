@@ -237,7 +237,7 @@ def _entorno_base():
 
 def entorno_sandbox(darkroom, whisper):
     return dict(_entorno_base(), HF_HOME=str(darkroom / "models/huggingface"), VOZ_AUDIO=str(AUDIO),
-                VOZ_WHISPER=whisper, VOZ_PALABRAS="Niklaus, Nik, Nick, Marcus")      # the wake word, so Whisper spells it right
+                VOZ_WHISPER=whisper, VOZ_PALABRAS=PALABRAS_CLAVE)      # the wake word, so Whisper spells it right
 
 
 def entorno_tts(hablante, silencio=False):
@@ -1068,9 +1068,36 @@ def _cargar_locales():
 _LOCALES = _cargar_locales()
 
 
+def _nombres_locales():
+    """The owner's own wake names from local/ajustes.json ({"nombres": ["Viernes", "Vier"]}): single words, the first
+    one is the name it goes by. None keeps the built-in ones."""
+    ruta = _archivo_local("ajustes.json")
+    if ruta is None:
+        return None
+    try:
+        lista = json.loads(ruta.read_text(encoding="utf-8")).get("nombres")
+    except (OSError, ValueError, AttributeError, RecursionError) as exc:
+        print(f"local/ajustes.json no se leyó ({exc}); sigo con los nombres de fábrica", file=sys.stderr)
+        return None
+    if not isinstance(lista, list):
+        return None
+    def simple(n):                                   # what the ear can match: plain letters once accents are removed
+        s = "".join(c for c in unicodedata.normalize("NFKD", n.lower()) if not unicodedata.combining(c))
+        return re.fullmatch(r"[a-z]{2,20}", s) is not None
+    buenos = [n.strip() for n in lista if isinstance(n, str) and simple(n.strip())]
+    return buenos[:8] or None
+
+
+NOMBRES_PROPIOS = _nombres_locales()
+PALABRAS_CLAVE = ", ".join(NOMBRES_PROPIOS) if NOMBRES_PROPIOS else "Niklaus, Nik, Nick, Marcus"
+
+
 def prompt_manos():
     """The public prompt plus the owner's private section (local/prompt.md: their work, tools and preferences)."""
     texto = PROMPT_MANOS.read_text(encoding="utf-8")
+    if NOMBRES_PROPIOS:
+        texto += (f"\n- Para este dueño te llamas {NOMBRES_PROPIOS[0]} (respondes a: {', '.join(NOMBRES_PROPIOS)}); "
+                  "ese nombre sustituye al de la primera línea.\n")
     propio = _archivo_local("prompt.md")
     if propio is not None:
         try:

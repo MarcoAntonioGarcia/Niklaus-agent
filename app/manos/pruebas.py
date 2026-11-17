@@ -280,7 +280,7 @@ class ManosTest(unittest.TestCase):
         # a forged entry claims a protected destination; undo must refuse to move/trash it
         protegido = self.raiz / "sacado.txt"
         protegido.write_text("fuera", encoding="utf-8")
-        falso = nucleo.NIKLAUS / "CLAUDE.md"           # a real protected control
+        falso = nucleo.NIKLAUS / "herramientas.toml"   # a real protected control
         import json as _j, uuid as _u
         nucleo._preparar()
         lid = _u.uuid4().hex[:12]

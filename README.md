@@ -45,6 +45,10 @@ goes through an independent security review before it ships.
   an allowlist policy; anything hard to undo asks first, by voice and on screen. Speech-to-text and
   text-to-speech are local.
 
+### Install
+
+macOS on Apple Silicon. See [INSTALL.md](INSTALL.md): prerequisites, then `scripts/instalar.sh`.
+
 ### Make it yours
 
 The repository holds only the generic agent. What is personal stays out of git:

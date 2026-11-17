@@ -32,6 +32,9 @@ import nucleo  # noqa: E402
 import oido  # noqa: E402
 import webview  # noqa: E402
 
+if voz.NOMBRES_PROPIOS:                 # the owner's own wake names (local/ajustes.json)
+    oido.usar_nombres(voz.NOMBRES_PROPIOS)
+
 ESPERA_VISTO = 5          # seconds for the window to confirm it drew a permission card (else: NO)
 ATENTO = 12               # seconds it keeps listening without the wake word after answering or being called
 ESPERA_DIARIO = 3         # cap for the window's reads of the hands' journal

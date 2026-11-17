@@ -38,6 +38,16 @@ def normalizar(texto):
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", t)).strip()
 
 
+def usar_nombres(nombres):
+    """Replace the built-in wake names with the owner's own (single words, from local/ajustes.json)."""
+    global _NOMBRE
+    limpios = [normalizar(n) for n in nombres]
+    limpios = [n for n in limpios if re.fullmatch(r"[a-z]{2,20}", n)]
+    if limpios:
+        _NOMBRE = re.compile(r"\b(" + "|".join(re.escape(n) for n in limpios) + r")\b")
+    return bool(limpios)
+
+
 def buscar_nombre(texto):
     """(heard the name?, the command around it). "Niklaus, ordena el escritorio" -> (True, "ordena el escritorio");
     "oye Niklaus" -> (True, ""); "ordena el escritorio, Niklaus" -> (True, "ordena el escritorio")."""
